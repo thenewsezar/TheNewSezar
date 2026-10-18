@@ -1,0 +1,50 @@
+name: Build Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: sezar-linux-amd64
+            cc: gcc
+          - os: macos-latest
+            artifact: sezar-macos-arm64
+            cc: cc
+          - os: windows-latest
+            artifact: sezar-windows-amd64.exe
+            cc: gcc
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile
+        run: ${{ matrix.cc }} -O2 -Wall -o ${{ matrix.artifact }} src/sezar.c src/cli.c
+        shell: bash
+
+      - name: Smoke test (non-Windows)
+        if: matrix.os != 'windows-latest'
+        run: |
+          ./${{ matrix.artifact }} encrypt "hello world" 4781
+          ./${{ matrix.artifact }} decrypt "$(./${{ matrix.artifact }} encrypt 'hello world' 4781)" 4781
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact }}
