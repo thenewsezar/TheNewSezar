@@ -1,0 +1,15 @@
+# Build artifacts
+sezar
+test_sezar
+*.exe
+*.o
+*.obj
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker
+*.tar

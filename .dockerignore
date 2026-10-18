@@ -1,0 +1,7 @@
+.git
+.github
+sezar
+test_sezar
+*.md
+.gitignore
+docker-compose.yml
